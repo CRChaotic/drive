@@ -12,9 +12,9 @@ public class MailSender {
 
     public static String sendMailTo(String email){
         // Sender's email ID needs to be mentioned
-        String from = "ChaoticDrive <729256259@qq.com>";
-        String username = "729256259@qq.com";
-        String password = "fjplfeghdvwjbbfj";
+        String from = "ChaoticDrive <xxx@qq.com>";
+        String username = "xxxx@qq.com";
+        String password = "password";
         // Get system properties
         Properties properties = System.getProperties();
         properties.put("mail.smtp.auth", "true");
@@ -72,7 +72,7 @@ public class MailSender {
             while ((temp = bufferedReader.readLine()) != null){
                 html.append(temp);
             }
-            System.out.println(html.toString());
+            System.out.println(html);
             return html.toString();
         } catch (FileNotFoundException e) {
             throw new RuntimeException("Cannot open html file");
