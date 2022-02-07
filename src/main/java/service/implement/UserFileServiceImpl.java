@@ -52,7 +52,7 @@ public class UserFileServiceImpl implements UserFileService {
         //checking out directory owner if directory not a root directory
         if (userFile.getDirectory() != 0) {
             UserFile uf = userFileDao.findUserFileById(userFile.getDirectory());
-            //throw user file owner exception if directory not found or did not belong to user
+            //throw user file owner exception if directory is not found or did not belong to user
             if (uf == null || !uf.getUsername().equals(userFile.getUsername())) {
                 throw new UserFileOwnerException();
             }
