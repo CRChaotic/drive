@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="dao.FileDao">
+    <resultMap id="fileResult" type="File">
+        <id property="id" column="id"/>
+        <result property="size" column="size"/>
+        <result property="status" column="status"/>
+    </resultMap>
+
+    <insert id="addFile" parameterType="File">
+        INSERT INTO file(id, size, status)
+        VALUES (#{id}, #{size}, #{status})
+    </insert>
+
+    <select id="findFiles" resultMap="fileResult">
+        SELECT id, size, status
+        FROM file
+        <where>
+            <if test="id != null">
+                id = #{id}
+            </if>
+            <if test="size != null">
+                AND size = #{size}
+            </if>
+            <if test="status">
+                AND status = #{status}
+            </if>
+        </where>
+    </select>
+    <select id="findFileById" parameterType="String" resultMap="fileResult">
+        SELECT id, size, status
+        FROM file
+        WHERE id = #{id}
+    </select>
+
+    <update id="updateFileById">
+        UPDATE file
+        <set>
+            <if test="file.size != null">
+                size = #{file.size},
+            </if>
+            <if test="file.status != null">
+                status = #{file.status}
+            </if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteFileById" parameterType="String">
+        DELETE
+        FROM file
+        WHERE id = #{id}
+    </delete>
+</mapper>

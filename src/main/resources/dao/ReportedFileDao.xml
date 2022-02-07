@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="dao.ReportedFileDao">
+    <resultMap id="reportedFileResult" type="ReportedFile">
+        <id property="id" column="id"/>
+        <result property="username" column="user_username"/>
+        <result property="fileId" column="file_id"/>
+        <result property="reason" column="reason"/>
+        <result property="createdTime" column="created_time"/>
+        <result property="fileStatus" column="status"/>
+    </resultMap>
+
+    <insert id="addReportedFile">
+        INSERT INTO reported_file(user_username, file_id, reason
+        <if test="createdTime != null">
+            ,created_time
+        </if>)
+        VALUES (#{username},#{fileId},#{reason}
+        <if test="createdTime != null">
+            ,#{createdTime}
+        </if>)
+        <selectKey keyProperty="id" resultType="Integer" order="AFTER">
+            SELECT LAST_INSERT_ID();
+        </selectKey>
+    </insert>
+
+    <select id="findReportedFiles" resultMap="reportedFileResult">
+        SELECT reported_file.id, user_username, file_id, reason, created_time, status
+        FROM reported_file
+        LEFT JOIN file ON file.id = file_id
+        <where>
+            <if test="id != null">
+                reported_file.id = #{id}
+            </if>
+            <if test="username != null">
+                AND user_username = #{username}
+            </if>
+            <if test="fileId != null">
+                AND file_id = #{fileId}
+            </if>
+            <if test="reason != null">
+                AND reason LIKE CONCAT('%',#{reason},'%')
+            </if>
+            <if test="createdTime != null">
+                AND created_time = #{createdTime}
+            </if>
+            <if test="fileStatus != null">
+                AND file.status = #{fileStatus}
+            </if>
+        </where>
+    </select>
+    <select id="findReportedFileById" resultMap="reportedFileResult">
+        SELECT reported_file.id, user_username, file_id, reason, created_time, status
+        FROM reported_file
+                 LEFT JOIN file ON file.id = file_id
+        WHERE reported_file.id = #{id}
+    </select>
+
+    <delete id="deleteReportedFileById">
+        DELETE
+        FROM reported_file
+        WHERE id = #{id}
+    </delete>
+</mapper>

@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="dao.ShareInfoDao">
+    <resultMap id="shareInfoResultWithUserFiles" type="ShareInfo">
+        <id property="id" column="share_info_id"/>
+        <result property="username" column="user_username"/>
+        <result property="accessToken" column="access_token"/>
+        <result property="expiryTime" column="expiry_time"/>
+        <result property="rootDirectory" column="root_directory"/>
+        <result property="createdTime" column="created_time"/>
+        <collection property="userFiles" ofType="UserFile">
+            <id property="id" column="user_file_id"/>
+            <result property="username" column="username"/>
+            <result property="directory" column="directory"/>
+            <result property="filename" column="filename"/>
+            <result property="type" column="type"/>
+            <result property="size" column="size"/>
+            <result property="createdTime" column="user_file_created_time"/>
+            <result property="userFileStatus" column="user_file_status"/>
+            <result property="fileStatus" column="file_status"/>
+            <result property="fileId" column="file_id"/>
+        </collection>
+    </resultMap>
+    <sql id="shareInfoSelect">
+        SELECT share_info.id AS share_info_id,
+               share_info.user_username,
+               share_info.access_token,
+               share_info.expiry_time,
+               share_info.root_directory,
+               share_info.created_time,
+               user_file.id AS user_file_id,
+               user_file.user_username AS username,
+               user_file.directory,
+               user_file.filename,
+               user_file.type,
+               user_file.created_time AS user_file_created_time,
+               user_file.status AS user_file_status,
+               file.id AS file_id,
+               file.size,
+               file.status AS file_status
+        FROM share_info
+                 LEFT JOIN share_info_user_file ON share_info.id = share_info_user_file.share_info_id
+                 LEFT JOIN user_file ON share_info_user_file.user_file_id = user_file.id
+                 LEFT JOIN file ON user_file.file_id = file.id
+    </sql>
+
+    <insert id="addShareInfo" parameterType="ShareInfo">
+        INSERT INTO share_info(id, user_username,root_directory
+        <if test="accessToken != null">
+            , access_token
+        </if>
+        <if test="expiryTime != null">
+            ,expiry_time
+        </if>
+        <if test="createdTime != null">
+            , created_time
+        </if>)
+        VALUES (#{id},#{username},#{rootDirectory}
+        <if test="accessToken != null">
+            ,#{accessToken}
+        </if>
+        <if test="expiryTime != null">
+            ,#{expiryTime}
+        </if>
+        <if test="createdTime != null">
+            ,#{createdTime}
+        </if>)
+    </insert>
+    <insert id="addUserFilesToShareInfoById">
+        INSERT INTO share_info_user_file(share_info_id, user_file_id)
+        VALUES
+        <foreach collection="userFileIds" item="userFileId" separator=",">
+            (#{id},#{userFileId})
+        </foreach>
+    </insert>
+
+    <select id="findShareInfo" parameterType="ShareInfo" resultMap="shareInfoResultWithUserFiles">
+        <include refid="shareInfoSelect"/>
+        <where>
+            <if test="id != null">
+                share_info.id = #{id}
+            </if>
+            <if test="username != null">
+                AND share_info.user_username = #{username}
+            </if>
+            <if test="accessToken != null">
+                AND share_info.access_token = #{accessToken}
+            </if>
+            <if test="expiryTime != null">
+                AND share_info.expirty_time = #{expiryTime}
+            </if>
+            <if test="rootDirectory != null">
+                AND user_file.directory = #{rootDirectory}
+            </if>
+            <if test="createdTime != null">
+                AND share_info.created_time = #{createdTime}
+            </if>
+        </where>
+    </select>
+    <select id="findShareInfoById" resultMap="shareInfoResultWithUserFiles">
+        <include refid="shareInfoSelect"/>
+        WHERE share_info.id = #{id}
+    </select>
+
+    <update id="updateShareInfoById">
+        UPDATE share_info
+        <set>
+            <if test="shareInfo.username != null">
+                user_username = #{shareInfo.username},
+            </if>
+            <choose>
+                <when test="shareInfo.accessToken != null">
+                    access_token = #{shareInfo.accessToken},
+                </when>
+                <otherwise>
+                    access_token = NULL,
+                </otherwise>
+            </choose>
+            <choose>
+                <when test="shareInfo.expiryTime != null">
+                    expiry_time = #{shareInfo.expiryTime},
+                </when>
+                <otherwise>
+                    expiry_time = NULL,
+                </otherwise>
+            </choose>
+            <if test="shareInfo.createdTime != null">
+                created_time = #{shareInfo.createdTime}
+            </if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteShareInfoById" parameterType="String">
+        DELETE
+        FROM share_info
+        WHERE id = #{id}
+    </delete>
+    <delete id="deleteUserFilesFromShareInfoById">
+        DELETE FROM share_info_user_file
+        WHERE share_info_id = #{id} AND user_file_id IN
+        <foreach collection="userFileIds" item="userFileId" open="(" separator="," close=")">
+            #{userFileId}
+        </foreach>
+    </delete>
+</mapper>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module version="4">
+  <component name="FacetManager">
+    <facet type="Spring" name="Spring">
+      <configuration>
+        <fileset id="fileset" name="drive" removed="false">
+          <file>file://$MODULE_DIR$/src/main/resources/spring-config.xml</file>
+          <file>file://$MODULE_DIR$/src/main/resources/spring-mybatis-config.xml</file>
+          <file>file://$MODULE_DIR$/src/main/resources/spring-mvc-config.xml</file>
+          <file>file://$MODULE_DIR$/src/main/resources/spring-aop-config.xml</file>
+        </fileset>
+      </configuration>
+    </facet>
+  </component>
+</module>

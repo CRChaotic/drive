@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="dao.UserDao">
+    <resultMap id="userResult" type="User">
+        <id property="username" column="username"/>
+        <result property="password" column="password"/>
+        <result property="email" column="email"/>
+        <result property="role" column="role"/>
+        <result property="capacity" column="capacity"/>
+        <result property="createdTime" column="created_time"/>
+        <result property="userStatus" column="status"/>
+    </resultMap>
+
+    <insert id="addUser" parameterType="User">
+        INSERT INTO user(username, password, email, role, capacity, created_time, status)
+        VALUES (#{username}, #{password}, #{email}, #{role}, #{capacity}, #{createdTime}, #{userStatus})
+    </insert>
+
+    <select id="findUsers" parameterType="User" resultMap="userResult">
+        SELECT username, password, email, role, capacity, created_time, status
+        FROM user
+        <where>
+            <if test="username != null">
+                username = #{username}
+            </if>
+            <if test="email != null">
+                AND email = #{email}
+            </if>
+            <if test="role != null">
+                AND role = #{role}
+            </if>
+            <if test="capacity != null">
+                AND capacity = #{capacity}
+            </if>
+            <if test="createdTime != null">
+                AND created_time = #{createdTime}
+            </if>
+            <if test="userStatus != null">
+                AND status = #{userStatus}
+            </if>
+        </where>
+    </select>
+    <select id="wildcardFindUsers" parameterType="User" resultMap="userResult">
+        SELECT username, password, email, role, capacity, created_time, status
+        FROM user
+        <where>
+            <if test="username != null">
+                username LIKE CONCAT('%',#{username},'%')
+            </if>
+            <if test="email != null">
+                AND email LIKE CONCAT('%',#{email},'%')
+            </if>
+            <if test="role != null">
+                AND role = #{role}
+            </if>
+            <if test="capacity != null">
+                AND capacity = #{capacity}
+            </if>
+            <if test="createdTime != null">
+                AND created_time = #{createdTime}
+            </if>
+            <if test="userStatus != null">
+                AND status = #{userStatus}
+            </if>
+        </where>
+    </select>
+    <select id="findUserByUsername" resultMap="userResult">
+        SELECT *
+        FROM user
+        WHERE username = #{username}
+    </select>
+
+    <update id="updateUserByUsername">
+        UPDATE chaotic_drive.user
+        <set>
+            <if test="user.username != null">
+                username = #{user.username},
+            </if>
+            <if test="user.password != null">
+                password = #{user.password},
+            </if>
+            <if test="user.email != null">
+                email = #{user.email},
+            </if>
+            <if test="user.role != null">
+                role = #{user.role},
+            </if>
+            <if test="user.capacity != null">
+                capacity = #{user.capacity},
+            </if>
+            <if test="user.createdTime != null">
+                created_time = #{user.createdTime},
+            </if>
+            <if test="user.userStatus != null">
+                status = #{user.userStatus}
+            </if>
+        </set>
+        WHERE username = #{username}
+    </update>
+
+    <delete id="deleteUserByUsername" parameterType="String">
+        DELETE
+        FROM user
+        WHERE username = #{username}
+    </delete>
+</mapper>
