@@ -17,7 +17,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 
 @RestController
-@RequestMapping(value = "/user")
+@RequestMapping( "/user")
 public class UserController {
     private final UserService userService;
 
