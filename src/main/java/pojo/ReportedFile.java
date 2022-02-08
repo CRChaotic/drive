@@ -1,5 +1,7 @@
 package pojo;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import java.sql.Timestamp;
 
 public class ReportedFile {
@@ -7,6 +9,7 @@ public class ReportedFile {
     private String username;
     private String fileId;
     private String reason;
+    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
     private Timestamp createdTime;
     private FileStatus fileStatus;
 

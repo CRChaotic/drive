@@ -1,5 +1,7 @@
 package pojo;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import java.sql.Timestamp;
 import java.util.List;
 
@@ -8,6 +10,7 @@ public class ShareInfo {
     private String username;
     private String accessToken;
     private Timestamp expiryTime;
+    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
     private Timestamp createdTime;
     private Integer rootDirectory;
     private List<UserFile> userFiles;

@@ -4,13 +4,12 @@ import pojo.ReportedFile;
 import pojo.User;
 import pojo.UserFile;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.List;
 
 public interface UserFileService {
     UserFile saveUserFile(User user, UserFile userFile);
     boolean saveUserDirectory(User user,int parentDirectoryId,String directoryName);
+    UserFile getUserFileById(User user,int id);
     List<UserFile> getUserFilesByDirectoryId(User user,int directoryId);
     List<UserFile> getUserFilesByWildcardFilename(User user,String filename);
     List<UserFile> getUserFilesByWildcardType(User user,String type);

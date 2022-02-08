@@ -1,6 +1,9 @@
 package pojo;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 
 public class UserFile {
     private Integer id;
@@ -9,6 +12,7 @@ public class UserFile {
     private String filename;
     private Long size;
     private String type;
+    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
     private Timestamp createdTime;
     private UserFileStatus userFileStatus;
     private FileStatus fileStatus;
@@ -71,6 +75,7 @@ public class UserFile {
     }
 
     public Timestamp getCreatedTime() {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         return createdTime;
     }
 

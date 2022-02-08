@@ -1,5 +1,7 @@
 package pojo;
 
+import org.springframework.lang.NonNull;
+
 import java.sql.Timestamp;
 
 public class User {
@@ -15,7 +17,7 @@ public class User {
         return username;
     }
 
-    public void setUsername(String username) {
+    public void setUsername(@NonNull String username) {
         this.username = username;
     }
 
@@ -23,7 +25,7 @@ public class User {
         return password;
     }
 
-    public void setPassword(String password) {
+    public void setPassword(@NonNull String password) {
         this.password = password;
     }
 
@@ -31,7 +33,7 @@ public class User {
         return email;
     }
 
-    public void setEmail(String email) {
+    public void setEmail(@NonNull String email) {
         this.email = email;
     }
 

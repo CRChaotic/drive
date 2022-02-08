@@ -5,16 +5,13 @@ import dao.ReportedFileDao;
 import dao.UserFileDao;
 import exception.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import pojo.*;
 import service.UserFileService;
 import service.UserService;
 import utils.FileTypeConverter;
 import utils.Identifier;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -37,6 +34,7 @@ public class UserFileServiceImpl implements UserFileService {
         this.userService = userService;
     }
 
+    @Transactional
     @Override
     public UserFile saveUserFile(User user, UserFile userFile) {
         if(userFile.getFilename().isEmpty()){
@@ -57,8 +55,16 @@ public class UserFileServiceImpl implements UserFileService {
                 throw new UserFileOwnerException();
             }
         }
+        //check out user file whether it exists
+        UserFile uf = new UserFile();
+        uf.setUsername(user.getUsername());
+        uf.setDirectory(userFile.getDirectory());
+        uf.setFilename(userFile.getFilename());
+        List<UserFile> userFileList;
+        if( (userFileList = userFileDao.findUserFiles(uf)).size() == 1){
+            return userFileList.get(0);
+        }
         File file = fileDao.findFileById(userFile.getFileId());
-        boolean existed = true;
         //adding file if it is new user file
         if (file == null) {
             file = new File();
@@ -69,7 +75,6 @@ public class UserFileServiceImpl implements UserFileService {
             else
                 file.setStatus(userFile.getFileStatus());
             fileDao.addFile(file);
-            existed = false;
         } else if (file.getStatus() == FileStatus.BLOCKED) {
             //do not save user file if the file has been blocked
             throw new FileStatusBlockedException();
@@ -81,12 +86,10 @@ public class UserFileServiceImpl implements UserFileService {
         userFile.setCreatedTime(Timestamp.from(Instant.now()));
         if (userFile.getUserFileStatus() == null)
             userFile.setUserFileStatus(UserFileStatus.NORMAL);
+        if(userFile.getFileStatus() == null)
+            userFile.setFileStatus(FileStatus.NORMAL);
         userFileDao.addUserFile(userFile);
-        if(existed){
-            return null;
-        }else{
-            return userFile;
-        }
+        return userFile;
     }
 
     @Override
@@ -130,6 +133,18 @@ public class UserFileServiceImpl implements UserFileService {
             return true;
         } else {
             return false;
+        }
+    }
+
+    public UserFile getUserFileById(User user,int id){
+        if (userService.authorizeUser(user) == null) {
+            throw new UnauthorizedUserException();
+        }
+        UserFile userFile = userFileDao.findUserFileById(id);
+        if(userFile != null && userFile.getUsername().equals(user.getUsername())){
+            return userFile;
+        }else{
+            return null;
         }
     }
 
@@ -278,6 +293,7 @@ public class UserFileServiceImpl implements UserFileService {
             }
         });
         userFileDao.deleteUserFileById(userFile.getId());
+        fileDao.deleteFileById(userFile.getFileId());
     }
 
     @Override
@@ -366,20 +382,24 @@ public class UserFileServiceImpl implements UserFileService {
         if (userService.authorizeUser(user) == null) {
             throw new UnauthorizedUserException();
         }
+        //make user the user file belongs to user
         UserFile userFile = userFileDao.findUserFileById(userFileId);
         if (userFile == null || !userFile.getUsername().equals(user.getUsername()) || userFile.getUserFileStatus() != UserFileStatus.NORMAL
                 || userFile.getFileStatus() != FileStatus.NORMAL) {
             throw new UserFileOwnerException();
         }
-        UserFile userDirectory = userFileDao.findUserFileById(directoryId);
-        if (userDirectory == null || !userDirectory.getUsername().equals(user.getUsername()) || userDirectory.getUserFileStatus() != UserFileStatus.NORMAL
-                || userDirectory.getFileStatus() != FileStatus.NORMAL || !userDirectory.getType().equals(FileTypeConverter.DIRECTORY_TYPE)) {
-            throw new UserFileOwnerException();
+        //check out directory owner if directory not a root directory;
+        if(directoryId != 0){
+            UserFile userDirectory = userFileDao.findUserFileById(directoryId);
+            if (userDirectory == null || !userDirectory.getUsername().equals(user.getUsername()) || userDirectory.getUserFileStatus() != UserFileStatus.NORMAL
+                    || userDirectory.getFileStatus() != FileStatus.NORMAL || !userDirectory.getType().equals(FileTypeConverter.DIRECTORY_TYPE)) {
+                throw new UserFileOwnerException();
+            }
+            userDirectory.setCreatedTime(Timestamp.from(Instant.now()));
+            userFileDao.updateUserFileById(directoryId,userDirectory);
         }
         userFile.setDirectory(directoryId);
         userFile.setCreatedTime(Timestamp.from(Instant.now()));
-        userDirectory.setCreatedTime(Timestamp.from(Instant.now()));
         userFileDao.updateUserFileById(userFileId,userFile);
-        userFileDao.updateUserFileById(directoryId,userDirectory);
     }
 }

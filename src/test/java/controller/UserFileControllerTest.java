@@ -1,6 +1,7 @@
 package controller;
 
 import org.junit.Test;
+import pojo.FileStatus;
 import pojo.UserFile;
 import pojo.UserFileStatus;
 import utils.Identifier;
@@ -19,7 +20,7 @@ public class UserFileControllerTest {
         }
         File uploadedFile = new File("./uploadedFile/x.txt");
         InputStream inputStream = new FileInputStream(uploadedFile);
-        File tmpFile = File.createTempFile("tmp","",new File("./uploadedFile"));
+        File tmpFile = File.createTempFile("tmp","",dir);
         tmpFile.deleteOnExit();
         OutputStream outputStream = new FileOutputStream(tmpFile);
         byte[] bytes = new byte[1024];
@@ -33,12 +34,14 @@ public class UserFileControllerTest {
         outputStream.close();
         String fileId = identifier.getUniqueId();
         File file = new File(dir.getPath()+"/"+fileId);
-        if(tmpFile.renameTo(file)){
+        if(!file.exists() && tmpFile.renameTo(file)){
             UserFile userFile = new UserFile();
             userFile.setFileId(fileId);
+            userFile.setFileStatus(FileStatus.NORMAL);
             userFile.setUserFileStatus(UserFileStatus.NORMAL);
-            if(tmpFile.delete())
-                System.out.println(userFile);
+            System.out.println(userFile);
+        }else{
+            System.out.println("file exists");
         }
     }
 }
