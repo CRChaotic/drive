@@ -9,6 +9,7 @@ public class ShareInfo {
     private String id;
     private String username;
     private String accessToken;
+    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
     private Timestamp expiryTime;
     @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
     private Timestamp createdTime;
