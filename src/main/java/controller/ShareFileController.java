@@ -62,7 +62,7 @@ public class ShareFileController {
     }
 
     @GetMapping("/get/{shareInfoId}")
-    public ResponseEntity<?> getShareInfoByIdAndAccessToken(@PathVariable String shareInfoId, @RequestParam String accessToken, @RequestParam int directoryId, HttpSession session) {
+    public ResponseEntity<?> getShareInfoByIdAndAccessToken(@PathVariable String shareInfoId, @RequestParam String accessToken, @RequestParam int directoryId) {
         try {
             ShareInfo shareInfo = shareFileService.getShareInfoByIdAndAccessToken(shareInfoId, accessToken, directoryId);
             if(shareInfo == null)
