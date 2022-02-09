@@ -5,7 +5,7 @@
 <configuration>
     <properties resource="database.properties"/>
     <settings>
-        <setting name="defaultExecutorType" value="SIMPLE"/>
+        <setting name="defaultExecutorType" value="BATCH"/>
     </settings>
     <typeAliases>
         <package name="pojo"/>
