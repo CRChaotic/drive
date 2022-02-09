@@ -35,11 +35,11 @@ public class ShareFileServiceImpl implements ShareFileService {
         //check out every single user file whether it belongs to the user
         shareInfo.getUserFiles().forEach(userFile -> {
             UserFile uf = userFileDao.findUserFileById(userFile.getId());
-            if (!uf.getUsername().equals(user.getUsername())) {
+            if (uf == null || !uf.getUsername().equals(user.getUsername())) {
                 throw new UserFileOwnerException();
             }
             if (uf.getUserFileStatus() == UserFileStatus.NORMAL && uf.getFileStatus() == FileStatus.NORMAL) {
-//                userFileIds.add(uf.getId());
+                userFile.setDirectory(uf.getDirectory());
                 if (uf.getType().equals(FileTypeConverter.DIRECTORY_TYPE))
                     recursivelySaveSharedUserFiles(uf, userFileIds);
                 else

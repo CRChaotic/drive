@@ -26,7 +26,7 @@ public class UserFileServiceImpl implements UserFileService {
     private final UserService userService;
     private final FileTypeConverter converter;
 
-    public UserFileServiceImpl(UserFileDao userFileDao, FileDao fileDao,ReportedFileDao reportedFileDao, FileTypeConverter converter, UserService userService) {
+    public UserFileServiceImpl(UserFileDao userFileDao, FileDao fileDao, ReportedFileDao reportedFileDao, FileTypeConverter converter, UserService userService) {
         this.userFileDao = userFileDao;
         this.fileDao = fileDao;
         this.reportedFileDao = reportedFileDao;
@@ -37,7 +37,7 @@ public class UserFileServiceImpl implements UserFileService {
     @Transactional
     @Override
     public UserFile saveUserFile(User user, UserFile userFile) {
-        if(userFile.getFilename().isEmpty()){
+        if (userFile.getFilename().isEmpty()) {
             throw new EmptyFilenameException();
         }
         if (userService.authorizeUser(user) == null) {
@@ -61,7 +61,7 @@ public class UserFileServiceImpl implements UserFileService {
         uf.setDirectory(userFile.getDirectory());
         uf.setFilename(userFile.getFilename());
         List<UserFile> userFileList;
-        if( (userFileList = userFileDao.findUserFiles(uf)).size() == 1){
+        if ((userFileList = userFileDao.findUserFiles(uf)).size() == 1) {
             return userFileList.get(0);
         }
         File file = fileDao.findFileById(userFile.getFileId());
@@ -80,13 +80,13 @@ public class UserFileServiceImpl implements UserFileService {
             throw new FileStatusBlockedException();
         }
         // using FileTypeConverter to convert file type based on user file info
-        if(userFile.getType() == null)
+        if (userFile.getType() == null)
             userFile.setType(converter.convertToType(userFile));
         userFile.setUsername(user.getUsername());
         userFile.setCreatedTime(Timestamp.from(Instant.now()));
         if (userFile.getUserFileStatus() == null)
             userFile.setUserFileStatus(UserFileStatus.NORMAL);
-        if(userFile.getFileStatus() == null)
+        if (userFile.getFileStatus() == null)
             userFile.setFileStatus(FileStatus.NORMAL);
         userFileDao.addUserFile(userFile);
         return userFile;
@@ -136,14 +136,14 @@ public class UserFileServiceImpl implements UserFileService {
         }
     }
 
-    public UserFile getUserFileById(User user,int id){
+    public UserFile getUserFileById(User user, int id) {
         if (userService.authorizeUser(user) == null) {
             throw new UnauthorizedUserException();
         }
         UserFile userFile = userFileDao.findUserFileById(id);
-        if(userFile != null && userFile.getUsername().equals(user.getUsername())){
+        if (userFile != null && userFile.getUsername().equals(user.getUsername()) && userFile.getUserFileStatus() != UserFileStatus.DELETED && userFile.getFileStatus() != FileStatus.BLOCKED) {
             return userFile;
-        }else{
+        } else {
             return null;
         }
     }
@@ -297,8 +297,8 @@ public class UserFileServiceImpl implements UserFileService {
     }
 
     @Override
-    public void renameUserFileById(User user, int id,String filename) {
-        if(filename.isEmpty()){
+    public void renameUserFileById(User user, int id, String filename) {
+        if (filename.isEmpty()) {
             throw new EmptyFilenameException();
         }
         if (userService.authorizeUser(user) == null) {
@@ -311,19 +311,19 @@ public class UserFileServiceImpl implements UserFileService {
         }
         uf.setFilename(filename);
         uf.setCreatedTime(Timestamp.from(Instant.now()));
-        userFileDao.updateUserFileById(id,uf);
+        userFileDao.updateUserFileById(id, uf);
     }
 
     @Override
-    public ReportedFile reportUserFileByFileId(User user, String fileId,String reason) {
+    public ReportedFile reportUserFileByFileId(User user, String fileId, String reason) {
         if (userService.authorizeUser(user) == null) {
             throw new UnauthorizedUserException();
         }
         File file = fileDao.findFileById(fileId);
-        if(file == null){
+        if (file == null) {
             throw new FileNotExistException();
         }
-        if(file.getStatus() == FileStatus.BLOCKED){
+        if (file.getStatus() == FileStatus.BLOCKED) {
             throw new FileStatusBlockedException();
         }
         ReportedFile reportedFile = new ReportedFile();
@@ -346,7 +346,7 @@ public class UserFileServiceImpl implements UserFileService {
         }
         UserFile userFile = new UserFile();
         userFile.setUserFileStatus(UserFileStatus.NORMAL);
-        userFileDao.updateUserFileById(id,userFile);
+        userFileDao.updateUserFileById(id, userFile);
     }
 
     @Override
@@ -370,11 +370,11 @@ public class UserFileServiceImpl implements UserFileService {
                 restoreRecursivelyUserDirectory(f);
             } else {
                 f.setUserFileStatus(UserFileStatus.NORMAL);
-                userFileDao.updateUserFileById(f.getId(),f);
+                userFileDao.updateUserFileById(f.getId(), f);
             }
         });
         userFile.setUserFileStatus(UserFileStatus.NORMAL);
-        userFileDao.updateUserFileById(userFile.getId(),userFile);
+        userFileDao.updateUserFileById(userFile.getId(), userFile);
     }
 
     @Override
@@ -389,17 +389,17 @@ public class UserFileServiceImpl implements UserFileService {
             throw new UserFileOwnerException();
         }
         //check out directory owner if directory not a root directory;
-        if(directoryId != 0){
+        if (directoryId != 0) {
             UserFile userDirectory = userFileDao.findUserFileById(directoryId);
             if (userDirectory == null || !userDirectory.getUsername().equals(user.getUsername()) || userDirectory.getUserFileStatus() != UserFileStatus.NORMAL
                     || userDirectory.getFileStatus() != FileStatus.NORMAL || !userDirectory.getType().equals(FileTypeConverter.DIRECTORY_TYPE)) {
                 throw new UserFileOwnerException();
             }
             userDirectory.setCreatedTime(Timestamp.from(Instant.now()));
-            userFileDao.updateUserFileById(directoryId,userDirectory);
+            userFileDao.updateUserFileById(directoryId, userDirectory);
         }
         userFile.setDirectory(directoryId);
         userFile.setCreatedTime(Timestamp.from(Instant.now()));
-        userFileDao.updateUserFileById(userFileId,userFile);
+        userFileDao.updateUserFileById(userFileId, userFile);
     }
 }
