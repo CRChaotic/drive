@@ -3,7 +3,10 @@ package controller;
 import exception.EmptyFilenameException;
 import exception.FileNotExistException;
 import exception.UserFileOwnerException;
+import org.apache.commons.io.FileUtils;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.*;
@@ -15,12 +18,15 @@ import pojo.UserFileStatus;
 import service.UserFileService;
 import utils.FileTypeConverter;
 import utils.Identifier;
+import utils.Zipper;
 
 import javax.servlet.http.HttpSession;
 import java.io.*;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicLong;
 
 @RestController
 @RequestMapping("/file")
@@ -28,6 +34,7 @@ public class UserFileController {
     private final UserFileService userFileService;
     //actual file existing directory
     private final File fileStorageDir = new File("../fileStorage");
+    private final File tempDir = new File("../temp");
 
     public UserFileController(UserFileService userFileService) {
         this.userFileService = userFileService;
@@ -92,6 +99,73 @@ public class UserFileController {
         }
     }
 
+    @GetMapping("/download")
+    public ResponseEntity<byte[]> downloadUserFiles(@RequestParam List<Integer> userFileIds, HttpSession session) throws IOException {
+        User user = (User) session.getAttribute("user");
+        String filename = null;
+        String fileId;
+        File file = null;
+        HttpHeaders headers = new HttpHeaders();
+        if (userFileIds.size() == 1) {
+            UserFile userFile = userFileService.getUserFileById(user, userFileIds.get(0));
+            //straight up downloading if it is a normal file
+            if (userFile != null && !userFile.getType().equals(FileTypeConverter.DIRECTORY_TYPE)) {
+                filename = userFile.getFilename();
+                fileId = userFile.getFileId();
+                file = new File(fileStorageDir + "/" + fileId);
+            } else if (userFile != null) {
+                filename = userFile.getFilename() + ".zip";
+                fileId = UUID.randomUUID().toString();
+                Zipper zipper = new Zipper(tempDir + "/" + fileId);
+                List<UserFile> userFiles = userFileService.getUserFilesByDirectoryId(user, userFile.getId());
+                userFiles.forEach(
+                        uf -> {
+                            if (uf.getType().equals(FileTypeConverter.DIRECTORY_TYPE)) {
+                                recursivelyAddZipEntry(user, uf.getId(), zipper, uf.getFilename());
+                            } else {
+                                zipper.addEntry(uf.getFilename(), fileStorageDir + "/" + uf.getFileId());
+                            }
+                        }
+                );
+                zipper.done();
+                file = new File(tempDir + "/" + fileId);
+            }
+        }
+        //multiple files downloading
+        if (userFileIds.size() > 1) {
+            fileId = UUID.randomUUID().toString();
+            filename = fileId+".zip";
+            Zipper zipper = new Zipper(tempDir + "/" + fileId);
+            userFileIds.forEach(
+                    id -> {
+                        UserFile userFile = userFileService.getUserFileById(user, id);
+                        if (userFile != null && userFile.getType().equals(FileTypeConverter.DIRECTORY_TYPE)) {
+                            recursivelyAddZipEntry(user, userFile.getId(),zipper,userFile.getFilename());
+                        } else if (userFile != null) {
+                            zipper.addEntry(userFile.getFilename(), fileStorageDir + "/" + userFile.getFileId());
+                        }
+                    }
+            );
+            zipper.done();
+            file = new File(tempDir + "/" + fileId);
+        }
+        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+        headers.setContentDispositionFormData("filename", filename);
+        assert file != null;
+        return new ResponseEntity<>(FileUtils.readFileToByteArray(file), headers, HttpStatus.OK);
+    }
+
+    private void recursivelyAddZipEntry(User user, int directoryId, Zipper zipper, String directoryName) {
+        List<UserFile> userFiles = userFileService.getUserFilesByDirectoryId(user, directoryId);
+        userFiles.forEach(userFile -> {
+            if (userFile.getType().equals(FileTypeConverter.DIRECTORY_TYPE)) {
+                recursivelyAddZipEntry(user, userFile.getId(), zipper, directoryName + "/" + userFile.getFilename());
+            } else {
+                zipper.addEntry(directoryName + "/" + userFile.getFilename(), fileStorageDir + "/" + userFile.getFileId());
+            }
+        });
+    }
+
     @GetMapping("/directory/{directoryId}")
     public ResponseEntity<List<UserFile>> getUserFilesByDirectory(@PathVariable int directoryId, HttpSession session) {
         User user = (User) session.getAttribute("user");
@@ -99,13 +173,13 @@ public class UserFileController {
     }
 
     @PatchMapping("/directory/{userFileId}/to/{directoryId}")
-    public ResponseEntity<String> changeUserFileDirectory(@PathVariable int userFileId,@PathVariable int directoryId,HttpSession session){
+    public ResponseEntity<String> changeUserFileDirectory(@PathVariable int userFileId, @PathVariable int directoryId, HttpSession session) {
         User user = (User) session.getAttribute("user");
-        try{
-            userFileService.modifyUserFileDirectory(user,userFileId,directoryId);
-            return new ResponseEntity<>("Moved user file "+userFileId+" to directory "+directoryId,HttpStatus.OK);
-        }catch (UserFileOwnerException userFileOwnerException){
-            return new ResponseEntity<>("Doesn't have the user file or directory id is not a directory file",HttpStatus.BAD_REQUEST);
+        try {
+            userFileService.modifyUserFileDirectory(user, userFileId, directoryId);
+            return new ResponseEntity<>("Moved user file " + userFileId + " to directory " + directoryId, HttpStatus.OK);
+        } catch (UserFileOwnerException userFileOwnerException) {
+            return new ResponseEntity<>("Doesn't have the user file or directory id is not a directory file", HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -173,14 +247,14 @@ public class UserFileController {
     @PostMapping("/report")
     public ResponseEntity<String> reportUserFileByFileId(@RequestBody ReportUserFileForm userFileForm, HttpSession session) {
         User user = (User) session.getAttribute("user");
-        if(userFileForm.getReason().isEmpty()){
-            return new ResponseEntity<>("Reason cannot be empty",HttpStatus.BAD_REQUEST);
+        if (userFileForm.getReason().isEmpty()) {
+            return new ResponseEntity<>("Reason cannot be empty", HttpStatus.BAD_REQUEST);
         }
         try {
-            userFileService.reportUserFileByFileId(user, userFileForm.getFileId(),userFileForm.getReason());
-            return new ResponseEntity<>("Reported successfully",HttpStatus.OK);
-        }catch (FileNotExistException fileNotExistException){
-            return new ResponseEntity<>("Reported file doesn't exist",HttpStatus.BAD_REQUEST);
+            userFileService.reportUserFileByFileId(user, userFileForm.getFileId(), userFileForm.getReason());
+            return new ResponseEntity<>("Reported successfully", HttpStatus.OK);
+        } catch (FileNotExistException fileNotExistException) {
+            return new ResponseEntity<>("Reported file doesn't exist", HttpStatus.BAD_REQUEST);
         }
     }
 }
