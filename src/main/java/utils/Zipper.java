@@ -14,7 +14,7 @@ public class Zipper {
     private final byte[] buffer =  new byte[8192];
 
     public Zipper(String name) throws IOException {
-        this.name = name + ".zip";
+        this.name = name;
         File zipFile = new File(this.name);
         if (zipFile.createNewFile()) {
             this.zipOut = new ZipOutputStream(new FileOutputStream(this.name));
@@ -38,12 +38,12 @@ public class Zipper {
         this.size = size;
     }
 
-    public void addEntry(String file, String path) {
+    public void addEntry(String filenameInZip, String path) {
         try {
-            ZipEntry zipEntry = new ZipEntry(path);
-            FileInputStream fileIn = new FileInputStream(file);
+            ZipEntry zipEntry = new ZipEntry(filenameInZip);
+            FileInputStream fileIn = new FileInputStream(path);
             this.zipOut.putNextEntry(zipEntry);
-            int length = 0;
+            int length;
             while (true) {
                 length = fileIn.read(buffer);
                 if (length > -1) {
