@@ -3,8 +3,6 @@ package controller;
 import exception.AccessTokenErrorException;
 import exception.ExpiredTimeException;
 import exception.UserFileOwnerException;
-import org.apache.commons.io.FileUtils;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,7 +12,6 @@ import pojo.UserFile;
 import service.ShareFileService;
 
 import javax.servlet.http.HttpSession;
-import java.io.File;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -64,10 +61,14 @@ public class ShareFileController {
         return shareFileService.getAllShareInfo(user);
     }
 
-    @GetMapping("/{shareInfoId}")
+    @GetMapping("/get/{shareInfoId}")
     public ResponseEntity<?> getShareInfoByIdAndAccessToken(@PathVariable String shareInfoId, @RequestParam String accessToken, @RequestParam int directoryId, HttpSession session) {
         try {
-            return new ResponseEntity<>(shareFileService.getShareInfoByIdAndAccessToken(shareInfoId, accessToken, directoryId),HttpStatus.OK);
+            ShareInfo shareInfo = shareFileService.getShareInfoByIdAndAccessToken(shareInfoId, accessToken, directoryId);
+            if(shareInfo == null)
+                return new ResponseEntity<>("Share info does not exist",HttpStatus.BAD_REQUEST);
+            else
+                return new ResponseEntity<>(shareInfo,HttpStatus.OK);
         } catch (AccessTokenErrorException | ExpiredTimeException accessTokenErrorException) {
             return new ResponseEntity<>("Either accessToken is wrong or expiryTime expired",HttpStatus.BAD_REQUEST);
         }
