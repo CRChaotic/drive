@@ -6,12 +6,14 @@ import dao.UserDao;
 import exception.RoleException;
 import exception.UnauthorizedUserException;
 import exception.UserNotExistException;
+import org.springframework.stereotype.Service;
 import pojo.*;
 import service.AdminService;
 import service.UserService;
 
 import java.util.List;
 
+@Service("adminService")
 public class AdminServiceImpl implements AdminService {
     private final UserDao userDao;
     private final FileDao fileDao;
