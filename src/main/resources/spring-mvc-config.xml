@@ -24,10 +24,16 @@
         <mvc:interceptor>
             <mvc:mapping path="/file/**"/>
             <mvc:mapping path="/user/**"/>
+            <mvc:mapping path="/share/**"/>
             <mvc:exclude-mapping path="/user/login"/>
             <mvc:exclude-mapping path="/user/register"/>
             <mvc:exclude-mapping path="/user/verification"/>
+            <mvc:exclude-mapping path="/share/get/**"/>
             <bean class="interceptor.AccessInterceptor"/>
+        </mvc:interceptor>
+        <mvc:interceptor>
+            <mvc:mapping path="/admin/**"/>
+            <bean class="interceptor.AdminAccessInterceptor"/>
         </mvc:interceptor>
     </mvc:interceptors>
 </beans>
