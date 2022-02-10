@@ -9,6 +9,7 @@ public interface AdminService {
     List<User> getUsersByWildcardEmail(User user, String email);
     List<User> getAllUsers(User user);
     List<ReportedFile> getAllReportedFiles(User user);
+    ReportedFile getReportedFileById(User user,int id);
     void modifyUserStatusByUsername(User user, String username, UserStatus userStatus);
     void modifyUserCapacityByUsername(User user, String username, long capacity);
     void modifyUserRoleByUsername(User user, String username, Role role);

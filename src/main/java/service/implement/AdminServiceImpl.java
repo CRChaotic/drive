@@ -81,6 +81,18 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
+    public ReportedFile getReportedFileById(User user,int id){
+        user = userService.authorizeUser(user);
+        if(user == null){
+            throw new UnauthorizedUserException();
+        }
+        if(user.getRole() != Role.ADMIN){
+            throw new RoleException();
+        }
+        return reportedFileDao.findReportedFileById(id);
+    }
+
+    @Override
     public void modifyUserStatusByUsername(User user, String username, UserStatus userStatus) {
         user = userService.authorizeUser(user);
         if(user == null){
