@@ -60,6 +60,6 @@ public class UserServiceTest {
     @Test
     public void modifyUserEmailByUsername(){
         User user = saveUserEnv();
-        userService.modifyUserEmailByUsername(user,"729256259@qq.com");
+        userService.modifyUserEmailByUsername(user,"xxx@qq.com");
     }
 }
