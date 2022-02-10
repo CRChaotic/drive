@@ -1,5 +1,8 @@
 package controller;
 
+import controller.form.ModifyEmailForm;
+import controller.form.ModifyPasswordForm;
+import controller.form.RegisterForm;
 import exception.InvalidUserInfoException;
 import exception.SameEmailException;
 import exception.SameUsernameException;

@@ -92,6 +92,7 @@ public class UserFileServiceImpl implements UserFileService {
         return userFile;
     }
 
+    @Transactional
     @Override
     public boolean saveUserDirectory(User user, int parentDirectoryId, String directoryName) {
         if (directoryName.isEmpty()) {

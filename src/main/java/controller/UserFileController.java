@@ -1,5 +1,7 @@
 package controller;
 
+import controller.form.CreateDirectoryForm;
+import controller.form.ReportUserFileForm;
 import exception.EmptyFilenameException;
 import exception.FileNotExistException;
 import exception.UserFileOwnerException;
@@ -26,7 +28,6 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicLong;
 
 @RestController
 @RequestMapping("/file")
@@ -151,8 +152,10 @@ public class UserFileController {
         }
         headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
         headers.setContentDispositionFormData("filename", filename);
-        assert file != null;
-        return new ResponseEntity<>(FileUtils.readFileToByteArray(file), headers, HttpStatus.OK);
+        if(file != null)
+            return new ResponseEntity<>(FileUtils.readFileToByteArray(file), headers, HttpStatus.OK);
+        else
+            return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
     }
 
     private void recursivelyAddZipEntry(User user, int directoryId, Zipper zipper, String directoryName) {
