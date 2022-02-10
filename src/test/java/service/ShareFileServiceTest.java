@@ -93,6 +93,28 @@ public class ShareFileServiceTest {
     }
 
     @Test
+    public void getSharedUserFileByUserFileId(){
+        User user = UserServiceTest.saveUserEnv();
+        userFileService.saveUserDirectory(user,0,"a1");
+        List<UserFile> userFileList = userFileService.getUserFilesByDirectoryId(user,0)
+                .stream()
+                .filter(userFile -> (userFile.getFilename().equals("a1")))
+                .collect(Collectors.toList());
+        UserFile uf1 = UserFileServiceTest.saveUserFileEnv(user,userFileList.get(0).getId(), "test_id1","test_file1.txt", FileStatus.NORMAL);
+        UserFile uf2 = UserFileServiceTest.saveUserFileEnv(user,0, "test_id2","test_file2.txt", FileStatus.NORMAL);
+        ShareInfo shareInfo = new ShareInfo();
+        ArrayList<UserFile> userFiles = new ArrayList<>();
+        //directory was including uf1 user file
+        userFiles.add(userFileList.get(0));
+        userFiles.add(uf2);
+        shareInfo.setUserFiles(userFiles);
+        shareInfo.setAccessToken("12345678");
+        shareInfo.setExpiryTime(Timestamp.valueOf(LocalDateTime.now().plusDays(7)));
+        shareFileService.saveShareInfo(user,shareInfo);
+        System.out.println(shareFileService.getSharedUserFileByUserFileId(shareInfo.getId(),shareInfo.getAccessToken(),uf1.getId()));
+    }
+
+    @Test
     public void modifyShareInfoAccessTokenById(){
         User user = UserServiceTest.saveUserEnv();
         UserFile uf = UserFileServiceTest.saveUserFileEnv(user,0, "test_id","test_file.txt", FileStatus.BLOCKED);
