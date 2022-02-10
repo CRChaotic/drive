@@ -1,4 +1,4 @@
-package controller;
+package controller.form;
 
 public class CreateDirectoryForm {
     private int parentDirectoryId;

@@ -1,4 +1,4 @@
-package controller;
+package controller.form;
 
 import utils.Identifier;
 

@@ -1,17 +1,15 @@
-package controller;
+package controller.form;
 
-import pojo.User;
-
-public class RegisterForm {
-    private User user;
+public class ModifyEmailForm {
+    private String email;
     private String verificationCode;
 
-    public User getUser() {
-        return user;
+    public String getEmail() {
+        return email;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getVerificationCode() {
