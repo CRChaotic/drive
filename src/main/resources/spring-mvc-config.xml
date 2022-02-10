@@ -29,6 +29,7 @@
             <mvc:exclude-mapping path="/user/register"/>
             <mvc:exclude-mapping path="/user/verification"/>
             <mvc:exclude-mapping path="/share/get/**"/>
+            <mvc:exclude-mapping path="/share/download/**"/>
             <bean class="interceptor.AccessInterceptor"/>
         </mvc:interceptor>
         <mvc:interceptor>
