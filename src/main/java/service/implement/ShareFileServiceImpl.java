@@ -88,8 +88,8 @@ public class ShareFileServiceImpl implements ShareFileService {
             int rootDirectory = si.getRootDirectory();
             List<UserFile> userFiles = si.getUserFiles().stream()
                     .filter(userFile -> (rootDirectory == userFile.getDirectory()
-                                    && userFile.getFileStatus() == FileStatus.NORMAL
-                                    && userFile.getUserFileStatus() == UserFileStatus.NORMAL))
+                            && userFile.getFileStatus() == FileStatus.NORMAL
+                            && userFile.getUserFileStatus() == UserFileStatus.NORMAL))
                     .collect(Collectors.toList());
             si.setUserFiles(userFiles);
             return true;
@@ -112,14 +112,34 @@ public class ShareFileServiceImpl implements ShareFileService {
                     shareInfo.getUserFiles()
                             .stream()
                             .filter(userFile -> (userFile.getDirectory() == directoryId
-                                            && userFile.getFileStatus() == FileStatus.NORMAL
-                                            && userFile.getUserFileStatus() == UserFileStatus.NORMAL
+                                    && userFile.getFileStatus() == FileStatus.NORMAL
+                                    && userFile.getUserFileStatus() == UserFileStatus.NORMAL
                             )).collect(Collectors.toList())
             );
             return shareInfo;
         } else {
             throw new ExpiredTimeException();
         }
+    }
+
+    public UserFile getSharedUserFileByUserFileId(String shareId, String accessToken, int userFileId) {
+        List<UserFile> userFileList = new ArrayList<>();
+        UserFile userFile = new UserFile();
+        userFile.setId(userFileId);
+        userFileList.add(userFile);
+        ShareInfo shareInfo = new ShareInfo();
+        shareInfo.setId(shareId);
+        shareInfo.setAccessToken(accessToken);
+        shareInfo.setUserFiles(userFileList);
+        List<ShareInfo> shareInfoList = shareInfoDao.findShareInfo(shareInfo);
+        if(shareInfoList == null || shareInfoList.size() == 0){
+            return null;
+        }
+        UserFile sharedUserFile = shareInfoList.get(0).getUserFiles().get(0);
+        if(sharedUserFile.getUserFileStatus() != UserFileStatus.NORMAL || sharedUserFile.getFileStatus() != FileStatus.NORMAL){
+            return null;
+        }
+        return sharedUserFile;
     }
 
     @Override

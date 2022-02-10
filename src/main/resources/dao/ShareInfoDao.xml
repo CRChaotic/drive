@@ -97,6 +97,12 @@
             <if test="createdTime != null">
                 AND share_info.created_time = #{createdTime}
             </if>
+            <if test="userFiles != null">
+                AND user_file.id IN
+                <foreach collection="userFiles" item="userFile" open="(" separator="," close=")">
+                    #{userFile.id}
+                </foreach>
+            </if>
         </where>
     </select>
     <select id="findShareInfoById" resultMap="shareInfoResultWithUserFiles">
