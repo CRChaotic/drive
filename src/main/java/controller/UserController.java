@@ -17,7 +17,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 
 @RestController
-@RequestMapping( "/user")
+@RequestMapping("/user")
 public class UserController {
     private final UserService userService;
 
@@ -32,25 +32,27 @@ public class UserController {
         String verificationCode = registerForm.getVerificationCode();
 
         if (!validUserInfo(user)) {
-            return new ResponseEntity<>("Invalid user info", HttpStatus.OK);
+            return new ResponseEntity<>("Invalid user info", HttpStatus.BAD_REQUEST);
         }
         LocalDateTime lastTimeSendingVerification = (LocalDateTime) session.getAttribute("lastTime");
         String vCode = (String) session.getAttribute("verificationCode");
         if (lastTimeSendingVerification == null || !verificationCode.equals(vCode)) {
-            return new ResponseEntity<>("Verification code is wrong", HttpStatus.OK);
+            return new ResponseEntity<>("Verification code is wrong", HttpStatus.BAD_REQUEST);
         }
         //Verification code has 5 minutes expiry time
         if (lastTimeSendingVerification.plusMinutes(5L).isBefore(LocalDateTime.now())) {
-            return new ResponseEntity<>("Expired verification code", HttpStatus.OK);
+            return new ResponseEntity<>("Expired verification code", HttpStatus.BAD_REQUEST);
         }
         try {
             Identifier identifier = new Identifier("SHA3-256");
             identifier.read(user.getPassword().getBytes(StandardCharsets.UTF_8));
             user.setPassword(identifier.getUniqueId());
+            String email = (String)session.getAttribute("email");
+            user.setEmail(email);
             userService.saveUser(user);
             return new ResponseEntity<>("Registering successfully", HttpStatus.CREATED);
         } catch (InvalidUserInfoException invalidUserInfoException) {
-            return new ResponseEntity<>("Invalid user info message", HttpStatus.OK);
+            return new ResponseEntity<>("Invalid user info", HttpStatus.BAD_REQUEST);
         } catch (SameUsernameException sameUsernameException) {
             return new ResponseEntity<>("Username had been used", HttpStatus.OK);
         } catch (SameEmailException sameEmailException) {
@@ -125,6 +127,7 @@ public class UserController {
             System.out.println("verification code:" + randomNumbers);
             session.setAttribute("verificationCode", randomNumbers);
             session.setAttribute("lastTime", LocalDateTime.now());
+            session.setAttribute("email",email);
             return new ResponseEntity<>("Sending verification code successfully", HttpStatus.OK);
         } else {
             return new ResponseEntity<>("Sending verification code is not enough interval time from last time", HttpStatus.BAD_REQUEST);
@@ -133,7 +136,16 @@ public class UserController {
 
     public boolean validUserInfo(User user) {
         int passed = 0;
-        if (user.getUsername() != null && user.getUsername().length() > 0 && user.getUsername().length() < 17 && !user.getUsername().contains(" ")) {
+        if (user.getUsername() != null && user.getUsername().length() > 0 && user.getUsername().length() < 17) {
+            char[] invalidChars = {'~','`','!','@','#','$','%','^','&','*','(',')','-','+','=','[',']','{','}','|','\\',':',';','\'','"',',','.','?','/'};
+            String string = user.getUsername();
+            for(int i = 0; i < string.length();i++){
+                for (char invalidChar:invalidChars) {
+                    if(string.charAt(i) == invalidChar){
+                        return false;
+                    }
+                }
+            }
             passed++;
         }
         if (user.getPassword() != null && user.getPassword().length() > 5 && user.getPassword().length() < 17 && !user.getPassword().contains(" ")) {
