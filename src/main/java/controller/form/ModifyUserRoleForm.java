@@ -2,7 +2,7 @@ package controller.form;
 
 import pojo.Role;
 
-public class ModifyUserRoleByUsernameForm {
+public class ModifyUserRoleForm {
     private String username;
     private Role role;
 
