@@ -1,14 +1,12 @@
 package controller;
 
 import controller.form.ModifyReportedFileStatusForm;
-import controller.form.ModifyUserRoleByUsernameForm;
+import controller.form.ModifyUserRoleForm;
+import controller.form.ModifyUserStatusForm;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import pojo.FileStatus;
-import pojo.ReportedFile;
-import pojo.Role;
-import pojo.User;
+import pojo.*;
 import service.AdminService;
 
 import javax.servlet.http.HttpSession;
@@ -46,11 +44,20 @@ public class AdminController {
     }
 
     @PatchMapping ("/role")
-    public ResponseEntity<String> modifyUserRoleByUsername(@RequestBody ModifyUserRoleByUsernameForm userRoleByUsernameForm, HttpSession session){
+    public ResponseEntity<String> modifyUserRoleByUsername(@RequestBody ModifyUserRoleForm userRoleByUsernameForm, HttpSession session){
         String username = userRoleByUsernameForm.getUsername();
         Role role = userRoleByUsernameForm.getRole();
         User user = (User)session.getAttribute("user");
         adminService.modifyUserRoleByUsername(user,username,role);
         return new ResponseEntity<>("Modified user "+username+" role with "+role.name(),HttpStatus.OK);
+    }
+
+    @PatchMapping("/userStatus")
+    public ResponseEntity<String> modifyUserStatusByUsername(@RequestBody ModifyUserStatusForm userStatusForm, HttpSession session){
+        String username = userStatusForm.getUsername();
+        UserStatus userStatus = userStatusForm.getUserStatus();
+        User user = (User)session.getAttribute("user");
+        adminService.modifyUserStatusByUsername(user,username,userStatus);
+        return new ResponseEntity<>("Modified user "+username+" status with "+userStatus.name(),HttpStatus.OK);
     }
 }
