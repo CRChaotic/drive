@@ -6,10 +6,7 @@ import exception.EmptyFilenameException;
 import exception.FileNotExistException;
 import exception.UserFileOwnerException;
 import org.apache.commons.io.FileUtils;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -150,12 +147,14 @@ public class UserFileController {
             zipper.done();
             file = new File(tempDir + "/" + fileId);
         }
-        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-        headers.setContentDispositionFormData("filename", filename);
-        if(file != null)
+
+        if(file != null && filename != null){
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+            headers.setContentDisposition(ContentDisposition.attachment().filename(filename).build());
             return new ResponseEntity<>(FileUtils.readFileToByteArray(file), headers, HttpStatus.OK);
-        else
+        }else{
             return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
+        }
     }
 
     private void recursivelyAddZipEntry(User user, int directoryId, Zipper zipper, String directoryName) {
