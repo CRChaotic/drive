@@ -21,9 +21,12 @@ import utils.Zipper;
 
 import javax.servlet.http.HttpSession;
 import java.io.*;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @RestController
@@ -64,7 +67,7 @@ public class UserFileController {
             userFile.setFileId(fileId);
             userFile.setUsername(user.getUsername());
             userFile.setDirectory(parentDirectoryId);
-            userFile.setFilename(multipartFile.getOriginalFilename());
+            userFile.setFilename(URLEncoder.encode(Objects.requireNonNull(multipartFile.getOriginalFilename()), StandardCharsets.UTF_8));
             userFile.setType(multipartFile.getContentType());
             userFile.setSize(multipartFile.getSize());
             userFile.setUserFileStatus(UserFileStatus.NORMAL);
@@ -103,7 +106,7 @@ public class UserFileController {
         String filename = null;
         String fileId;
         File file = null;
-        HttpHeaders headers = new HttpHeaders();
+
         if (userFileIds.size() == 1) {
             UserFile userFile = userFileService.getUserFileById(user, userFileIds.get(0));
             //straight up downloading if it is a normal file
@@ -147,8 +150,8 @@ public class UserFileController {
             zipper.done();
             file = new File(tempDir + "/" + fileId);
         }
-
         if(file != null && filename != null){
+            HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
             headers.setContentDisposition(ContentDisposition.attachment().filename(filename).build());
             return new ResponseEntity<>(FileUtils.readFileToByteArray(file), headers, HttpStatus.OK);
